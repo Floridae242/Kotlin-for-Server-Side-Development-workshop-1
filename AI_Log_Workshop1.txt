@@ -1,0 +1,45 @@
+AI Log — Workshop #1: Kotlin Fundamentals and Null Safety
+
+รายการที่ 1: ปัญหา Invalid Gradle JDK configuration
+
+Prompt ที่ใช้ (สรุป)
+ขอให้ AI ช่วยตรวจและแก้ข้อความผิดพลาด “Invalid Gradle JDK configuration found” ในโปรเจกต์ Kotlin/Gradle
+
+AI ตอบผิด / น่าสงสัยตรงไหน
+ช่วงแรก AI ระบุว่า Gradle JVM ถูกแก้เป็น Temurin 21 แล้วและแนะนำให้ Reload Gradle แต่ IntelliJ ยังแสดงว่า JDK “azul-18” หายอยู่ แสดงว่าการตรวจเฉพาะ Gradle JVM ยังไม่ครบ เพราะ Project SDK และ language level ยังคงอ้างถึง JDK 18 ที่ไม่มีในเครื่อง
+
+เราตัดสินใจ / แก้อย่างไร
+ตรวจทั้ง .idea/gradle.xml, .idea/misc.xml และรายการ JDK ที่ติดตั้งจริง จากนั้นตั้ง Gradle JVM และ Project SDK เป็น Temurin 21 ให้ตรงกัน เปลี่ยน language level เป็น JDK 21 แล้ว Reload Gradle Project พร้อมยืนยันด้วยการรัน Gradle บน JDK 21
+
+สิ่งที่ได้เรียนรู้
+Gradle JVM, Project SDK และ JVM toolchain เป็นคนละการตั้งค่า การแก้เพียงค่าเดียวอาจยังไม่ทำให้ IDE ใช้งานได้ ต้องตรวจข้อความผิดพลาดจากสภาพแวดล้อมจริงและรันคำสั่งยืนยัน ไม่ควรเชื่อเพียงว่าการตั้งค่าถูกบันทึกแล้ว
+
+
+รายการที่ 2: Tests ผ่านแต่ไม่ได้ตรวจพฤติกรรมจริง
+
+Prompt ที่ใช้ (สรุป)
+ขอให้ AI Review โค้ด Workshop #1 แบบ Senior QA โดยตรวจ compilation, boundary cases และคุณภาพของ automated tests
+
+AI ตอบผิด / น่าสงสัยตรงไหน
+หลังแก้ package แล้ว Gradle รายงานว่า tests ทั้ง 4 ตัวผ่าน แต่ test สำหรับ Celsius เท่ากับศูนย์, Celsius ติดลบ และหนึ่งกิโลเมตรยังมี body ว่าง ไม่มี assertion ดังนั้นคำว่า “ผ่าน” ของ Gradle ไม่ได้ยืนยันว่าฟังก์ชันทำงานถูกต้องในสามกรณีนั้น
+
+เราตัดสินใจ / แก้อย่างไร
+เปิดอ่าน test ทุกตัวแทนการดูเฉพาะผล BUILD SUCCESSFUL แล้วเติมโครงสร้าง Arrange–Act–Assert ให้ tests ที่ว่าง กำหนด input และ expected result เรียกฟังก์ชันจริง และใช้ assertEquals ตรวจ actual result จากนั้นรัน clean test ใหม่จนทั้ง 4 tests ผ่านโดยมี assertion จริง
+
+สิ่งที่ได้เรียนรู้
+จำนวน tests ที่ผ่านไม่เท่ากับคุณภาพของ test ต้องตรวจว่าแต่ละ test มี assertion และสามารถล้มเหลวเมื่อ implementation ผิด Test ที่ไม่มี assertion สร้างความมั่นใจปลอม แม้รายงาน CI หรือ Gradle จะแสดงสีเขียว
+
+
+รายการที่ 3: เวอร์ชันของ Kotlin และ JDK ไม่ตรงข้อกำหนดคอร์ส
+
+Prompt ที่ใช้ (สรุป)
+ถาม AI ว่าปัญหา Version consistency อยู่ตรงส่วนใดของโปรเจกต์และควรตรวจแก้อย่างไร
+
+AI ตอบผิด / น่าสงสัยตรงไหน
+AI ชี้ว่าเอกสารคอร์สกำหนด Kotlin 2.4.x แต่ไม่ควรเดา patch version เอง เพราะการเลือกเวอร์ชันที่ไม่มีจริงหรือไม่เข้ากับ Gradle อาจทำให้ build พัง นอกจากนี้การตั้ง IntelliJ เป็น JDK 21 ไม่ได้เปลี่ยน jvmToolchain ใน build.gradle.kts โดยอัตโนมัติ
+
+เราตัดสินใจ / แก้อย่างไร
+ปรับ Kotlin Gradle plugin เป็น 2.4.0 และ jvmToolchain เป็น 21 ตั้ง IntelliJ Project SDK และ Gradle JVM เป็น Temurin 21 แล้วรัน clean test เพื่อยืนยัน ผล build ผ่าน แต่มีคำเตือนว่า Gradle 8.13 อาจไม่รองรับ Kotlin Gradle Plugin รุ่นอนาคตตั้งแต่ 2.5.0
+
+สิ่งที่ได้เรียนรู้
+การเปลี่ยนเวอร์ชันต้องตรวจความเข้ากันได้ด้วย build จริง ไม่ใช่ดูเพียงตัวเลขในไฟล์ Gradle warning ไม่ได้แปลว่า build ล้มเหลวเสมอ ต้องแยก warning ปัจจุบันออกจาก incompatibility ที่จะเกิดกับเวอร์ชันอนาคต
