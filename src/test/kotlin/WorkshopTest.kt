@@ -1,7 +1,10 @@
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import org.example.Product
 import org.example.celsiusToFahrenheit
 import org.example.kilometersToMiles
+import org.example.totalElectronicsPriceOver500
+import org.example.totalElectronicsPriceOver500Sequence
 
 class WorkshopTest {
 
@@ -71,6 +74,61 @@ class WorkshopTest {
     // --- Tests for Workshop #1: Unit Converter End ---
 
     // --- Tests for Workshop #2: Data Analysis Pipeline ---
-    // (เก็บไว้ทำใน Workshop #2 เมื่อ implement ฟังก์ชันและ Data Class ใน Workshop2.kt เรียบร้อยแล้ว)
+
+    @Test
+    fun `pipelines include only exact electronics category priced strictly over 500`() {
+        // Arrange
+        val products = listOf(
+            Product("Keyboard", 500.0, "Electronics"),
+            Product("Mouse", 499.0, "Electronics"),
+            Product("Jeans", 10_000.0, "Apparel"),
+            Product("Adapter", 500.01, "Electronics"),
+        )
+
+        // Act
+        val listTotal = totalElectronicsPriceOver500(products)
+        val sequenceTotal = totalElectronicsPriceOver500Sequence(products)
+
+        // Assert
+        assertEquals(500.01, listTotal, 0.001)
+        assertEquals(500.01, sequenceTotal, 0.001)
+    }
+
+    @Test
+    fun `pipelines calculate the expected total for the workshop products`() {
+        // Arrange
+        val products = listOf(
+            Product("Laptop", 35_000.0, "Electronics"),
+            Product("Smartphone", 25_000.0, "Electronics"),
+            Product("T-shirt", 450.0, "Apparel"),
+            Product("Monitor", 7_500.0, "Electronics"),
+            Product("Keyboard", 499.0, "Electronics"),
+            Product("Jeans", 1_200.0, "Apparel"),
+            Product("Headphones", 1_800.0, "Electronics"),
+        )
+
+        // Act
+        val listTotal = totalElectronicsPriceOver500(products)
+        val sequenceTotal = totalElectronicsPriceOver500Sequence(products)
+
+        // Assert
+        assertEquals(69_300.0, listTotal, 0.001)
+        assertEquals(69_300.0, sequenceTotal, 0.001)
+    }
+
+    @Test
+    fun `pipelines return zero for an empty product list`() {
+        // Arrange
+        val products = emptyList<Product>()
+
+        // Act
+        val listTotal = totalElectronicsPriceOver500(products)
+        val sequenceTotal = totalElectronicsPriceOver500Sequence(products)
+
+        // Assert
+        assertEquals(0.0, listTotal, 0.001)
+        assertEquals(0.0, sequenceTotal, 0.001)
+    }
+
     // --- Tests for Workshop #2: Data Analysis Pipeline End ---
 }

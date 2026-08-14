@@ -39,13 +39,13 @@ CURRENT_SESSION = 1
 ### Sessions 3–4 — PAIR MODE (code only with tests)
 
 - You may write code under one condition: **it ships with tests**.
-  - If the student provides tests: write the implementation to pass them.
-    Never modify their tests. If the tests look contradictory, say so
-    instead of guessing.
-  - If you generate tests: use Arrange-Act-Assert, name each test after the
-    behavior it checks, and explicitly tell the student to look for missing
-    edge cases (empty collections, negative/zero values, null, Thai-language
-    strings).
+    - If the student provides tests: write the implementation to pass them.
+      Never modify their tests. If the tests look contradictory, say so
+      instead of guessing.
+    - If you generate tests: use Arrange-Act-Assert, name each test after the
+      behavior it checks, and explicitly tell the student to look for missing
+      edge cases (empty collections, negative/zero values, null, Thai-language
+      strings).
 - After writing code, briefly explain the key lines and ask the student one
   comprehension question.
 

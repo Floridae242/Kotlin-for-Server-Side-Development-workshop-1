@@ -3,6 +3,21 @@ package org.example
 // 1. กำหนด data class สำหรับเก็บข้อมูลสินค้า
 data class Product(val name: String, val price: Double, val category: String)
 
+fun totalElectronicsPriceOver500(products: List<Product>): Double =
+    products
+        .filter { product -> product.category == "Electronics" }
+        .filter { product -> product.price > 500.0 }
+        .map { product -> product.price }
+        .sum()
+
+fun totalElectronicsPriceOver500Sequence(products: List<Product>): Double =
+    products
+        .asSequence()
+        .filter { product -> product.category == "Electronics" }
+        .filter { product -> product.price > 500.0 }
+        .map { product -> product.price }
+        .sum()
+
 fun main() {
     // 2. สร้างรายการสินค้าตัวอย่าง (List<Product>)
     // สินค้า name = "Laptop", price = 35000.0, category = "Electronics"
@@ -12,10 +27,18 @@ fun main() {
     // สินค้า name = "Keyboard", price = 499.0, category = "Electronics" // ราคาไม่เกิน 500
     // สินค้า name = "Jeans", price = 1200.0, category = "Apparel"
     // สินค้า name = "Headphones", price = 1800.0, category = "Electronics" // ตรงตามเงื่อนไข
-//🚨    val products = ?
+        val products = listOf(
+        Product("Laptop", 35_000.0, "Electronics"),
+        Product("Smartphone", 25_000.0, "Electronics"),
+        Product("T-shirt", 450.0, "Apparel"),
+        Product("Monitor", 7_500.0, "Electronics"),
+        Product("Keyboard", 499.0, "Electronics"),
+        Product("Jeans", 1_200.0, "Apparel"),
+        Product("Headphones", 1_800.0, "Electronics"),
+    )
 
     println("รายการสินค้าทั้งหมด:")
-//🚨    products.forEach { println(it) }
+    products.forEach { product -> println(product) }
     println("--------------------------------------------------")
 
     // --- โจทย์: จงหาผลรวมราคาสินค้าทั้งหมดในหมวด 'Electronics' ที่มีราคามากกว่า 500 บาท ---
@@ -25,19 +48,19 @@ fun main() {
     // กรองสินค้าที่ราคามากกว่า 500
     // ดึงเฉพาะราคาออกมาเป็น List<Double>
     // หาผลรวมของราคา
-//🚨    val totalElecPriceOver500 = ?
+    val totalElecPriceOver500 = totalElectronicsPriceOver500(products)
 
     println("วิธีที่ 1: ใช้ Chaining กับ List")
-//🚨    println("ผลรวมราคาสินค้า Electronics ที่ราคา > 500 บาท: $totalElecPriceOver500 บาท")
+    println("ผลรวมราคาสินค้า Electronics ที่ราคา > 500 บาท: $totalElecPriceOver500 บาท")
     println("--------------------------------------------------")
 
 
     // 4. (ขั้นสูง) วิธีที่ 2: การใช้ .asSequence() เพื่อเพิ่มประสิทธิภาพ
     // แปลง List เป็น Sequence ก่อนเริ่มประมวลผล
-//🚨    val totalElecPriceOver500Sequence = ?
+    val totalElecPriceOver500Sequence = totalElectronicsPriceOver500Sequence(products)
 
     println("วิธีที่ 2: ใช้ .asSequence() (ขั้นสูง)")
-//🚨    println("ผลรวมราคาสินค้า Electronics ที่ราคา > 500 บาท: $totalElecPriceOver500Sequence บาท")
+    println("ผลรวมราคาสินค้า Electronics ที่ราคา > 500 บาท: $totalElecPriceOver500Sequence บาท")
     println("--------------------------------------------------")
 
 
@@ -52,6 +75,6 @@ fun main() {
     println("   - operations ทั้งหมด (filter, map) จะไม่ทำงานทันที แต่จะถูกเรียงต่อกันไว้")
     println("   - ข้อมูลแต่ละชิ้น (each element) จะไหลผ่าน Pipeline ทั้งหมดทีละชิ้น จนจบกระบวนการ")
     println("   - เช่น: 'Laptop' จะถูก filter category -> filter price -> map price จากนั้น 'Smartphone' ถึงจะเริ่มทำกระบวนการเดียวกัน")
-    println("   - จะไม่มีการสร้าง Collection กลางทาง ทำให้ประหยัดหน่วยความจำและเร็วกว่ามากสำหรับชุดข้อมูลขนาดใหญ่ เพราะทำงานกับข้อมูลทีละชิ้นและทำทุกขั้นตอนให้เสร็จในรอบเดียว")
+    println("   - จะไม่มีการสร้าง Collection กลางทาง จึงอาจลดการใช้หน่วยความจำและอาจเร็วขึ้นเมื่อข้อมูลหรือ Pipeline เหมาะสม แต่ควร Benchmark ก่อนสรุปเรื่องความเร็ว")
     println("   - การคำนวณจะเกิดขึ้นเมื่อมี 'Terminal Operation' มาเรียกใช้เท่านั้น (ในที่นี้คือ .sum())")
 }
