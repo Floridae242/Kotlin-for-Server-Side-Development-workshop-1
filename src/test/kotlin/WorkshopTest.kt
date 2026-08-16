@@ -1,10 +1,13 @@
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import org.example.Product
 import org.example.celsiusToFahrenheit
 import org.example.kilometersToMiles
 import org.example.totalElectronicsPriceOver500
 import org.example.totalElectronicsPriceOver500Sequence
+import org.example.validateCitizenId
 
 class WorkshopTest {
 
@@ -131,4 +134,71 @@ class WorkshopTest {
     }
 
     // --- Tests for Workshop #2: Data Analysis Pipeline End ---
+
+    // --- Tests for Citizen ID Validation ---
+
+    @Test
+    fun `valid citizen id returns true`() {
+        // Arrange
+        val id = "1234567890121"
+
+        // Act
+        val result = validateCitizenId(id)
+
+        // Assert
+        assertTrue(result)
+    }
+
+    @Test
+    fun `citizen id with invalid length returns false`() {
+        // Arrange
+        val id = "123456789012"
+
+        // Act
+        val result = validateCitizenId(id)
+
+        // Assert
+        assertFalse(result)
+    }
+
+    @Test
+    fun `citizen id containing letters returns false`() {
+        // Arrange
+        val id = "123456789012A"
+
+        // Act
+        val result = validateCitizenId(id)
+
+        // Assert
+        assertFalse(result)
+    }
+
+    @Test
+    fun `citizen id with wrong checksum returns false`() {
+        // Arrange
+        val firstInvalidId = "1101700185207"
+        val secondInvalidId = "1234567890129"
+        val firstValidId = "3509900547250"
+        val secondValidId = "1234567890121"
+
+        // Act & Assert
+        assertFalse(validateCitizenId(firstInvalidId))
+        assertFalse(validateCitizenId(secondInvalidId))
+        assertTrue(validateCitizenId(firstValidId))
+        assertTrue(validateCitizenId(secondValidId))
+    }
+
+    @Test
+    fun `citizen id with Thai numerals returns true`() {
+        // Arrange
+        val id = "๑๑๐๑๗๐๐๑๘๕๒๐๖"
+
+        // Act
+        val result = validateCitizenId(id)
+
+        // Assert
+        assertTrue(result)
+    }
+
+    // --- Tests for Citizen ID Validation End ---
 }

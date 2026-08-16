@@ -1,0 +1,264 @@
+AI Log — Workshop #3: ใช้ Test ควบคุมการเขียนโค้ดด้วย AI
+
+หัวข้อ
+ใช้ Test เป็นข้อกำหนดพฤติกรรมของฟังก์ชัน validateCitizenId(id: String): Boolean และให้ AI แก้ implementation โดยห้ามแก้ Test
+
+
+1. เขียน Test 3 ตัวก่อนมี implementation
+
+พฤติกรรมที่ต้องการ
+- เลขบัตรถูกต้อง ให้คืนค่า true
+- ความยาวไม่ใช่ 13 หลัก ให้คืนค่า false
+- มีตัวอักษรปน ให้คืนค่า false
+
+Prompt ที่ใช้ (สรุป)
+ช่วยเพิ่ม Test 3 ตัวสำหรับฟังก์ชัน validateCitizenId(id: String): Boolean ทั้งกรณีเลขถูกต้อง ความยาวผิด และมีตัวอักษรปน โดยยังไม่ต้องเขียน implementation และให้รัน Test เพื่อยืนยันสถานะ RED
+
+โค้ด Test รอบแรก
+
+import kotlin.test.Test
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+import org.example.validateCitizenId
+
+class WorkshopTest {
+
+    @Test
+    fun `valid citizen id returns true`() {
+        // Arrange
+        val id = "1234567890121"
+
+        // Act
+        val result = validateCitizenId(id)
+
+        // Assert
+        assertTrue(result)
+    }
+
+    @Test
+    fun `citizen id with invalid length returns false`() {
+        // Arrange
+        val id = "123456789012"
+
+        // Act
+        val result = validateCitizenId(id)
+
+        // Assert
+        assertFalse(result)
+    }
+
+    @Test
+    fun `citizen id containing letters returns false`() {
+        // Arrange
+        val id = "123456789012A"
+
+        // Act
+        val result = validateCitizenId(id)
+
+        // Assert
+        assertFalse(result)
+    }
+}
+
+ผลการรันก่อนมี implementation (RED)
+
+> Task :compileTestKotlin FAILED
+Unresolved reference 'validateCitizenId'
+
+สาเหตุ
+Test อ้างถึงฟังก์ชันที่ยังไม่มีอยู่จริง จึงล้มในขั้น compileTestKotlin ก่อนที่จะเริ่มรัน assertion นี่คือ RED ที่ถูกต้องของรอบแรก
+
+
+2. ให้ AI เขียน implementation รอบแรก โดยห้ามแก้ Test
+
+ข้อความที่ใช้สั่ง AI
+เขียน implementation ของฟังก์ชัน validateCitizenId(id: String): Boolean ให้ Test ทั้ง 3 ตัวผ่าน โดยห้ามแก้ไข Test
+
+implementation รอบแรก
+
+package org.example
+
+fun validateCitizenId(id: String): Boolean =
+    id.length == 13 && id.all(Char::isDigit)
+
+ผลการรัน Test รอบแรก (GREEN)
+
+valid citizen id returns true PASSED
+citizen id with invalid length returns false PASSED
+citizen id containing letters returns false PASSED
+
+Citizen ID Tests: 3
+Passed: 3
+Failed: 0
+
+ทั้งโปรเจกต์มี Test รวม 10 ตัว และผ่านทั้งหมด 10 ตัว
+
+AI ตอบผิด / น่าสงสัยตรงไหน
+implementation รอบแรกไม่ได้ผิดจาก Test ที่มีอยู่ เพราะ Test ตรวจเพียงความยาวและรูปแบบตัวเลข แต่ implementation ยังยอมรับเลข 13 หลักทุกชุด แม้หลักสุดท้ายจะเป็น checksum ที่ผิด แสดงว่า Test ชุดแรกยังนิยามพฤติกรรมไม่ครบ ไม่ควรสรุปว่าฟังก์ชันตรวจเลขบัตรประชาชนได้สมบูรณ์เพียงเพราะ Test เป็นสีเขียว
+
+เราตัดสินใจ / แก้อย่างไร
+ยอมรับ implementation รอบแรกเป็นเพียงขั้น GREEN ชั่วคราว แล้วเพิ่ม Test ที่ตรวจ business rule ของหลัก check digit โดยไม่แก้ Test เดิม
+
+
+3. เพิ่ม Test สำหรับ checksum เพื่อทำให้ implementation เดิมพัง
+
+Prompt ที่ใช้ (สรุป)
+เพิ่ม edge-case Test เพื่อตรวจ checksum หลักที่ 13 ของเลขบัตรประชาชนไทย จากนั้นรัน Test กับ implementation เดิมและรายงานผลจริง โดยยังไม่แก้ implementation
+
+โค้ด Test สำหรับ checksum
+
+@Test
+fun `citizen id with wrong checksum returns false`() {
+    // Arrange
+    val firstInvalidId = "1101700185207"
+    val secondInvalidId = "1234567890129"
+    val firstValidId = "3509900547250"
+    val secondValidId = "1234567890121"
+
+    // Act & Assert
+    assertFalse(validateCitizenId(firstInvalidId))
+    assertFalse(validateCitizenId(secondInvalidId))
+    assertTrue(validateCitizenId(firstValidId))
+    assertTrue(validateCitizenId(secondValidId))
+}
+
+ผลการรันกับ implementation เดิม (RED)
+
+WorkshopTest > citizen id with wrong checksum returns false() FAILED
+AssertionFailedError at WorkshopTest.kt:185
+
+11 tests completed, 1 failed
+BUILD FAILED
+
+Expected: false
+Actual: true
+
+สาเหตุ
+เลข "1101700185207" มีความยาว 13 หลักและทุกตัวเป็นตัวเลข จึงผ่านเงื่อนไขของ implementation รอบแรก ทั้งที่ check digit ที่ถูกต้องควรเป็น 6 ไม่ใช่ 7
+
+
+4. ส่งผล Test ที่ไม่ผ่านให้ AI แก้ implementation โดยห้ามแก้ Test
+
+ข้อความที่ใช้สั่ง AI
+Test ใหม่ไม่ผ่าน เพราะ implementation ปัจจุบันตรวจแค่ความยาวและตรวจว่าเป็นตัวเลขทั้งหมด กรุณาแก้ validateCitizenId(id: String): Boolean ให้รองรับ checksum ของเลขบัตรประชาชนไทย และทำให้ Test ทั้งหมดผ่าน โดยห้ามแก้ไข Test
+
+implementation หลังแก้ไข
+
+package org.example
+
+fun validateCitizenId(id: String): Boolean {
+    if (id.length != 13 || !id.all(Char::isDigit)) return false
+
+    val digits = id.map(Char::digitToInt)
+    val weightedSum = digits
+        .take(12)
+        .mapIndexed { index, digit -> digit * (13 - index) }
+        .sum()
+    val expectedCheckDigit = (11 - weightedSum % 11) % 10
+
+    return digits.last() == expectedCheckDigit
+}
+
+Logic ของ checksum
+1. ตรวจว่าข้อมูลยาว 13 หลักและทุกอักขระเป็นตัวเลข
+2. แปลงอักขระแต่ละตัวเป็นค่าตัวเลข
+3. นำ 12 หลักแรกมาคูณน้ำหนักจาก 13 ลดลงถึง 2
+4. รวมผลคูณทั้งหมดเป็น weightedSum
+5. คำนวณ check digit ด้วยสูตร (11 - weightedSum % 11) % 10
+6. เปรียบเทียบค่าที่คำนวณได้กับหลักที่ 13
+
+ผลการรันหลังแก้ checksum (GREEN)
+
+11 tests completed
+Passed: 11
+Failed: 0
+BUILD SUCCESSFUL
+
+
+5. เพิ่ม Test จากความคิดเห็นในชั้นเรียน: เลขไทย
+
+Test ที่เพิ่ม
+
+@Test
+fun `citizen id with Thai numerals returns true`() {
+    // Arrange
+    val id = "๑๑๐๑๗๐๐๑๘๕๒๐๖"
+
+    // Act
+    val result = validateCitizenId(id)
+
+    // Assert
+    assertTrue(result)
+}
+
+ผลการรันรอบสุดท้าย
+
+Citizen ID Tests: 5
+Passed: 5
+Failed: 0
+
+Tests ทั้งโปรเจกต์: 12
+Passed: 12
+Failed: 0
+Skipped: 0
+Errors: 0
+
+BUILD SUCCESSFUL
+
+คำสั่งที่ใช้ยืนยันผล
+
+JAVA_HOME=/Users/floridae/Library/Java/JavaVirtualMachines/temurin-21.0.12/Contents/Home ./gradlew test --rerun-tasks --console=plain
+
+
+AI ตอบผิด / น่าสงสัยตรงไหน
+
+1. implementation รอบแรกผ่าน Test แต่ยังตรวจ checksum ไม่ได้
+   จุดนี้ไม่ใช่ compiler error แต่เป็นช่องว่างของ Test เมื่อเพิ่ม edge case แล้วจึงพิสูจน์ได้ว่าโค้ดยังไม่ครบตาม business rule
+
+2. การรัน Gradle ครั้งแรกด้วย JDK 25.0.4 ล้มก่อนเริ่ม Test
+   ข้อความล้มเหลวแสดงเพียง "25.0.4" จึงไม่ควรตีความว่า implementation หรือ Test ผิด เราตรวจ build.gradle.kts พบว่าโปรเจกต์ใช้ jvmToolchain(21) แล้วรันใหม่ด้วย Temurin 21 จึงได้ผล Test ที่เชื่อถือได้
+
+3. Char.isDigit() รองรับมากกว่าเลข 0–9
+   implementation ปัจจุบันรองรับเลขไทยตาม Test แต่ยังรองรับ Unicode decimal digits ชุดอื่นด้วย หาก requirement ต้องการเฉพาะเลขอารบิกและเลขไทย จะต้องเพิ่ม Test เพื่อจำกัดขอบเขตให้ชัดเจน
+
+4. Test ความยาวผิดใน repo ตรวจกรณีสั้น 12 หลักแล้ว แต่ยังไม่ได้ตรวจกรณียาว 14 หลัก
+   โค้ดปัจจุบันคืน false ให้ทั้งสองกรณีจากเงื่อนไข id.length != 13 แต่ถ้าต้องการหลักฐานจาก Test โดยตรง ควรเพิ่ม assertion สำหรับเลข 14 หลักในรอบถัดไป
+
+
+เราตัดสินใจ / แก้อย่างไร
+
+- ไม่แก้ Test เพื่อทำให้ผ่าน แต่แก้ implementation ตามผลล้มเหลว
+- แยก RED ที่เกิดจากโค้ดยังไม่มีออกจาก RED ที่เกิดจาก assertion และแยกทั้งสองอย่างออกจาก environment failure ของ JDK
+- ใช้เลขตัวอย่างที่ตรวจสอบ checksum แล้วทั้งกรณีถูกและผิด เพื่อป้องกัน Test ที่ให้ expected result ผิด
+- ใช้ kotlin.test ให้ตรงกับ dependency และรูปแบบ Test ที่มีอยู่ในโปรเจกต์ แทนการเพิ่ม dependency JUnit ใหม่โดยไม่จำเป็น
+- เพิ่ม Test เลขไทยจากความคิดเห็นในชั้นเรียนและรัน Test ทั้งชุดใหม่
+- ให้ Code Reviewer และ Kotlin Reviewer ตรวจซ้ำ ทั้งสองรายไม่พบปัญหาที่ต้องแก้
+- ไม่ commit งาน เพื่อให้เจ้าของ repository ตรวจ diff และ commit เอง
+
+
+สิ่งที่ได้เรียนรู้
+
+1. Test เป็นข้อกำหนดที่รันได้
+   AI สามารถเขียนโค้ดให้ผ่านเงื่อนไขที่ Test ระบุ แต่ไม่สามารถเดาเงื่อนไขที่ไม่ได้เขียนไว้ได้ครบเสมอ Test จึงต้องครอบคลุม business rule ที่สำคัญ
+
+2. Test ผ่านไม่ได้แปลว่า implementation สมบูรณ์
+   implementation รอบแรกผ่าน 3 Test เพราะ Test ยังไม่ตรวจ checksum การเพิ่ม edge case ทำให้ข้อบกพร่องที่ซ่อนอยู่ปรากฏออกมา
+
+3. RED ต้องล้มด้วยเหตุผลที่คาดไว้
+   รอบแรกควรล้มด้วย Unresolved reference เพราะยังไม่มีฟังก์ชัน ส่วนรอบ checksum ควร compile ผ่านแล้วล้มที่ assertion หากล้มเพราะ JDK หรือ Gradle ต้องแก้ environment ก่อนจึงจะใช้ผลนั้นตัดสินโค้ดได้
+
+4. ห้ามแก้ Test เพื่อซ่อนปัญหา
+   เมื่อ checksum Test ล้ม เราแก้ algorithm ใน production code ไม่ได้เปลี่ยน expected result หรือเอา assertion ออก
+
+5. Edge case ช่วยควบคุม AI
+   Test พื้นฐานควบคุมรูปแบบ input ส่วน checksum Test ควบคุมกฎจริงของเลขบัตร และ Test เลขไทยควบคุมการรองรับภาษาไทยอย่างชัดเจน
+
+6. ต้องบันทึกข้อจำกัดที่ยังเหลือ
+   ระบบรองรับ Unicode digits หลายชุดและยังไม่มี assertion สำหรับ input ยาว 14 หลัก การระบุสิ่งเหล่านี้ทำให้ AI Log สะท้อนงานจริงและช่วยวางแผน Test รอบต่อไป
+
+
+สรุป
+
+Workshop นี้ใช้วงจร RED–GREEN–REFACTOR เพื่อควบคุมการเขียนโค้ดด้วย AI เริ่มจากเขียน Test ก่อน implementation ยืนยันว่า Test ล้มด้วยเหตุผลที่ถูกต้อง แล้วให้ AI เขียนโค้ดขั้นต่ำจน Test ผ่าน จากนั้นเพิ่ม checksum edge case ที่ทำให้ implementation เดิมล้มจริง และส่งผลล้มเหลวกลับให้ AI แก้เฉพาะ production code
+
+ผลสุดท้ายฟังก์ชัน validateCitizenId ตรวจความยาว รูปแบบตัวเลข checksum และรองรับเลขไทยได้ Test ของ Citizen ID ผ่าน 5 ตัว และ Test ทั้งโปรเจกต์ผ่าน 12 ตัวโดยไม่มี failure, error หรือ skipped Test วิธีนี้ทำให้การรับงานจาก AI อ้างอิงหลักฐานจาก Test แทนการเชื่อคำอธิบายของ AI เพียงอย่างเดียว
